@@ -1,15 +1,20 @@
 name: Nibfin Action
 author: taco3064
-description: Thin Core adapter; bootstrap blocks until a released Core is bound
+description: Invoke a verified, administrator-installed pinned Core stage
 inputs:
-  request:
-    description: Core v1 stage JSON; this bootstrap has no released Core binding
+  issue-number:
+    description: Issue locator already adopted by the trusted Core host
+    required: true
+  stage:
+    description: Core stage; Core alone checks current authorization
     required: true
 outputs:
   status:
     description: Core completed, denied or pending; never whole-Issue completion
   code:
     description: Bounded diagnostic code without credential or exception text
+  receipt-hash:
+    description: Core receipt identity for a completed stage, empty otherwise
 runs:
   using: node24
   main: src/main.mjs

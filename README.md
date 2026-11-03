@@ -1,31 +1,43 @@
 # Nibfin Action
 
-Thin GitHub Action adapter for the Nibfin Core.
+Thin Node 24 GitHub Action that verifies and invokes an administrator-installed
+Nibfin Core. Core owns lifecycle, authorization, isolation and delivery policy.
 
-Manual [Bootstrap #1](https://github.com/taco3064/nibfin-act/issues/1) is in
-progress. This repository is not a released or operational delivery Action.
+This is development integration for manual [Bootstrap #1](https://github.com/taco3064/nibfin-act/issues/1),
+not a published Action release. `core-source.json` pins one candidate's repository,
+commit, archive and source manifest. Its provenance is Core
+[CI run 41681863006](https://github.com/taco3064/nibfin-core/actions/runs/41681863006).
+A candidate can be tested before publication; formal Action publication still
+requires the actual verified Core Release specified by the Issue.
 
-## Current implementation
+## Invocation
 
-- One Node 24 JavaScript Action project. No Docker action, container job,
-  Linux workstation requirement or OS installer is introduced.
-- `action.yml` resolves the shipped `src/main.mjs`; no runtime npm dependencies
-  or generated bundle are needed. The YAML parser is a pinned dev dependency.
-- The internal forwarding seam passes a stage request unchanged to Core's
-  existing v1 `runStageInput(input, executor)` transport. Core owns request
-  interpretation and all live native authorization. Fixtures test this seam;
-  they do not establish released-Core compatibility.
-- Completed, denied and Pending results map to exit codes 0, 1 and 2. A completed
-  stage is not a completed Issue. Exceptions or invalid outcomes cannot become
-  success, are not automatically retried, and do not disclose raw error text.
+Inputs `issue-number` (positive safe integer string) and `stage` (bounded lowercase
+name) are locators, never grants. Core validates the actual stage and authority.
+Outputs are `status`, diagnostic `code`, and `receipt-hash` for a completed stage.
+Completed, denied and Pending map to process exits 0, 1 and 2. A completed stage
+does not mean a completed Issue. Unknown execution stays Pending without retry.
 
-**Core has no verified public Release available at this implementation step.**
-The actual Action entry therefore returns `denied` / `CORE_RELEASE_UNAVAILABLE`
-and fails. It does not load an input-selected Core, fetch current main, accept
-token/module/socket overrides or bind a candidate as a released producer.
-There is intentionally no successful production usage example yet.
+The adapter runs only these fixed commands, without a shell:
 
-## Development
+```text
+/usr/bin/node /opt/nibfin/core/bin/nibfin-core.mjs verify <installation> <action-pin>
+/usr/bin/node /opt/nibfin/core/bin/nibfin-core.mjs stage <issue-number> <stage>
+```
+
+Core's own verifier checks the installed manifest and file contents before stage
+execution. The second command runs only after successful verification. No input,
+Issue field or environment option can select an executable, installation, module,
+Docker endpoint, credential file or policy. Raw Core output is not logged.
+
+The current binding consumes Core's existing `single-host-linux-v1` backend:
+fixed root-owned installation and `/etc/nibfin/host.json`, administrator adoption,
+an unprivileged dedicated Runner account, and all Core isolation requirements.
+The Action does not install that backend or grant authority. Daily development
+can use any OS; protected Windows/macOS Docker backends are not verified here.
+See [the caller contract and example](docs/caller-contract.md).
+
+## Development and evidence
 
 Use Node `24.22.1` and npm `11.9.0`:
 
@@ -35,33 +47,15 @@ npm run build
 npm test
 ```
 
-`npm run verify` checks pinned configuration, metadata, source syntax, the
-90-character/1,000-line source limits, entrypoint presence and tests.
-Tests cover the actual unreleased-entry refusal and fixture-only forwarding,
-Core denials, malformed results, exceptions and no blind retries.
+No runtime npm dependency or generated bundle is needed. `action.yml` points to
+shipped source. Checks enforce metadata, syntax and the 90-character/1,000-line
+source limits. Tests exercise accepted result forwarding, native-context
+filtering, denied calls, stale sources, missing installation, malformed results,
+exceptions and no retries, with controlled process fixtures.
 
-## Inputs, outputs and trust boundary
+CI additionally builds the exact Core candidate, checks both producer artifact
+digests, installs through Core's real API, rejects tampering and invokes the real
+Action/CLI on a disposable GitHub-hosted VM. That is source/CLI integration,
+not a successful authorized protected stage or external delivery E2E.
 
-The provisional `request` string follows the current Core v1 stage transport:
-`{"schemaVersion":1,"stage":"shape"}`. It supplies no authorization. The actual
-released contract must be rechecked before binding a producer. Outputs are
-`status` and bounded diagnostic `code`; no credentials or exception text are
-written to Action outputs.
-
-Actions context, Issue content and Runner labels do not grant permission.
-Protected workflow/source adoption, native identity, credentials, original
-Scope, dependencies, roles, Candidate, CI, Merge and recovery remain Core-owned.
-The Action does not reconstruct an authority record from an event. A future
-verified installed Core must read the actual native context itself.
-
-GitHub owns events and Runner scheduling. This step cannot schedule a new
-Runner job or replace the Core reusable workflow. The JS packaging format does
-not establish Windows/macOS/Linux protected execution support.
-
-## Remaining work
-
-See [the Bootstrap status](docs/bootstrap-status.md). A02's real producer binding
-and A03's released-Core compatibility remain incomplete. A04 publication requires
-an actual verified Core release, reviewed Action binding, current-source CI,
-and native tag/source/publisher read-back. No Action release or Marketplace
-listing has been published; fixture tests and CI do not prove external E2E.
+See [Bootstrap status](docs/bootstrap-status.md) for publication prerequisites.

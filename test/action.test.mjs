@@ -24,7 +24,7 @@ test('malformed metadata, changed runtime and unsafe entrypoints reject', async 
   }
 });
 
-test('unreleased entry denies without leaking credentials or accepting overrides',
+test('invalid entry inputs reject without credentials or executable overrides',
   async t => {
     const root = await mkdtemp(join(tmpdir(), 'nibfin-act-output-'));
     t.after(() => rm(root, { recursive: true, force: true }));
@@ -39,8 +39,8 @@ test('unreleased entry denies without leaking credentials or accepting overrides
     assert.equal(result.status, 1);
     const message = JSON.parse(result.stdout);
     assert.equal(message.status, 'denied');
-    assert.equal(message.code, 'CORE_RELEASE_UNAVAILABLE');
+    assert.equal(message.code, 'INVALID_ACTION_INPUT');
     assert.equal((result.stdout + result.stderr).includes(sentinel), false);
     assert.equal(await readFile(output, 'utf8'),
-      'status=denied\ncode=CORE_RELEASE_UNAVAILABLE\n');
+      'status=denied\ncode=INVALID_ACTION_INPUT\nreceipt-hash=\n');
   });
