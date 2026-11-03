@@ -1,0 +1,15 @@
+name: Nibfin Action
+author: taco3064
+description: Thin Core adapter; bootstrap blocks until a released Core is bound
+inputs:
+  request:
+    description: Core v1 stage JSON; this bootstrap has no released Core binding
+    required: true
+outputs:
+  status:
+    description: Core completed, denied or pending; never whole-Issue completion
+  code:
+    description: Bounded diagnostic code without credential or exception text
+runs:
+  using: node24
+  main: src/main.mjs
