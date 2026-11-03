@@ -1,0 +1,14 @@
+{
+  "name": "nibfin-act",
+  "version": "0.1.0-rc.1",
+  "private": true,
+  "description": "Thin GitHub Action adapter for Nibfin Core",
+  "type": "module",
+  "engines": { "node": "24.22.1", "npm": "11.9.0" },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  }
+}
