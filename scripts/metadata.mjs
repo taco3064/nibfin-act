@@ -12,10 +12,12 @@ export function actionMetadata(text) {
   }
   assert.equal(value.runs?.using, 'node24', 'Use the declared JS Action runtime');
   assert.equal(value.runs?.main, 'src/main.mjs', 'Unexpected Action entrypoint');
-  assert.equal(value.inputs?.request?.required, true, 'Request must be declared');
-  assert.equal(typeof value.inputs.request.description, 'string');
-  assert.deepEqual(Object.keys(value.inputs), ['request']);
-  for (const key of ['status', 'code']) {
+  assert.deepEqual(Object.keys(value.inputs ?? {}), ['issue-number', 'stage']);
+  for (const name of ['issue-number', 'stage']) {
+    assert.equal(value.inputs[name].required, true, 'Missing required input');
+    assert.equal(typeof value.inputs[name].description, 'string');
+  }
+  for (const key of ['status', 'code', 'receipt-hash']) {
     assert(typeof value.outputs?.[key]?.description === 'string',
       `Missing output description: ${key}`);
   }

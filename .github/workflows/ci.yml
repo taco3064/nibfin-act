@@ -21,3 +21,41 @@ jobs:
       - run: npm install --global npm@11.9.0 --ignore-scripts
       - run: npm ci --ignore-scripts
       - run: npm run verify
+      - name: Read the reviewed producer pin
+        id: core-pin
+        run: |
+          node -p "'commit=' + require('./core-source.json').commit" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: taco3064/nibfin-core
+          ref: ${{ steps.core-pin.outputs.commit }}
+          path: .core-fixture
+          persist-credentials: false
+      - name: Verify and install the real candidate in the disposable CI VM
+        run: node scripts/core-integration.mjs .core-fixture
+      - name: Invoke the real Action and Core CLI without stage authority
+        id: native-denial
+        continue-on-error: true
+        uses: ./
+        with:
+          issue-number: '42'
+          stage: not-a-stage
+      - name: Assert the real Core denial crossed the Action boundary
+        env:
+          OUTCOME: ${{ steps.native-denial.outcome }}
+          STATUS: ${{ steps.native-denial.outputs.status }}
+          CODE: ${{ steps.native-denial.outputs.code }}
+          RECEIPT: ${{ steps.native-denial.outputs.receipt-hash }}
+        run: |
+          test "$OUTCOME" = failure
+          test "$STATUS" = denied
+          test "$CODE" = INVALID_STAGE_REQUEST
+          test -z "$RECEIPT"
+      - name: Remove the disposable installation and source fixture
+        if: always()
+        run: |
+          if test -d /opt/nibfin/core; then
+            sudo rm -r /opt/nibfin/core
+            sudo rmdir /opt/nibfin
+          fi
+          rm -rf .core-fixture

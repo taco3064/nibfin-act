@@ -1,14 +1,13 @@
 import { appendFile } from 'node:fs/promises';
-import { forwardStage } from './forward.mjs';
+import { invokeStage } from './core-cli.mjs';
 
-// Deliberately unbound. Issue #1 forbids binding a candidate as a real release.
-// Do not accept a module/command/socket/token override from inputs or the env.
-// A reviewed producer integration must replace this boundary after Core release.
-const result = await forwardStage(process.env.INPUT_REQUEST ?? '', null);
+const result = await invokeStage(process.env['INPUT_ISSUE-NUMBER'],
+  process.env.INPUT_STAGE, process.env);
 try {
   if (process.env.GITHUB_OUTPUT) {
     await appendFile(process.env.GITHUB_OUTPUT,
-      `status=${result.status}\ncode=${result.code}\n`, 'utf8');
+      `status=${result.status}\ncode=${result.code}\n` +
+      `receipt-hash=${result.receiptHash ?? ''}\n`, 'utf8');
   }
 } catch {
   process.stderr.write('::error::ACTION_OUTPUT_UNAVAILABLE\n');
