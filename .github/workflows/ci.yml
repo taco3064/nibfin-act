@@ -33,6 +33,8 @@ jobs:
           persist-credentials: false
       - name: Verify and install the real candidate in the disposable CI VM
         run: node scripts/core-integration.mjs .core-fixture
+      - name: Exercise installed Core admission and Action outcome contracts
+        run: node --test scripts/core-contract.mjs
       - name: Invoke the real Action and Core CLI without stage authority
         id: native-denial
         continue-on-error: true
