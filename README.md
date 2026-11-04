@@ -55,7 +55,16 @@ exceptions and no retries, with controlled process fixtures.
 
 CI additionally builds the exact Core candidate, checks both producer artifact
 digests, installs through Core's real API, rejects tampering and invokes the real
-Action/CLI on a disposable GitHub-hosted VM. That is source/CLI integration,
-not a successful authorized protected stage or external delivery E2E.
+Action/CLI on a disposable GitHub-hosted VM. Contract tests use the installed
+Core's real stage executor with its pinned provider/caller/isolation fixtures and
+a synthetic Agent. They exercise permitted Shape, rejected authority changes and
+Pending, then check Action result forwarding. These are controlled contracts,
+not live GitHub authorization, real Agent execution or external delivery E2E.
+
+Under the current Issue and Proposal, reviewed full-commit candidates are used
+for the first authorized external E2E. Only after it succeeds may the Owner
+authorize matching Core/Action/CLI Releases and Marketplace publication, followed
+by independent clean installation/read-back. No Release is needed to integrate
+or run that first E2E; publication cannot replace the E2E.
 
 See [Bootstrap status](docs/bootstrap-status.md) for publication prerequisites.

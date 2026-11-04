@@ -57,9 +57,12 @@ boundary; never put them in inputs or Action outputs.
 Missing OIDC permission, wrong member/repository/workflow/Runner, stale source,
 unadopted Issue, unresolved execution or insufficient isolation must fail in Core.
 The adapter preserves a valid denied/Pending outcome and never retries. Controlled
-tests exercise this forwarding; they do not prove these native authorizations
-passed on an actual protected host. The actual CI denial demonstrates the real CLI
-boundary without creating a fake authorization record.
+tests exercise this forwarding. Installed-Core contract tests additionally use
+Core's pinned synthetic provider/caller/isolation fixtures and a synthetic Agent
+to exercise permitted Shape, changed Scope, revoked permission, foreign repository,
+fork, stale caller and unknown execution. No native authorization or host adoption
+is established by those fixtures. The actual CI denial demonstrates the real CLI
+boundary without creating host authority configuration.
 
 Status/code/receipt outputs follow GitHub's [Action metadata contract](https://docs.github.com/en/actions/reference/workflows-and-actions/metadata-syntax).
 Only bounded diagnostic fields and a validated receipt hash can reach them.
