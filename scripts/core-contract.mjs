@@ -41,7 +41,7 @@ async function fixture(t, mutate = () => {}) {
     calls.push(args[0]);
     if (args[0] === 'verify') {
       return { exitCode: 0, signal: null, stderr: '',
-        stdout: execFileSync('/usr/bin/node',
+        stdout: execFileSync(process.execPath,
           [`${coreDirectory}/bin/nibfin-core.mjs`, ...args],
           { env, encoding: 'utf8' }) };
     }
