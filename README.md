@@ -6,7 +6,7 @@ Nibfin Core. Core owns lifecycle, authorization, isolation and delivery policy.
 This is development integration for manual [Bootstrap #1](https://github.com/taco3064/nibfin-act/issues/1),
 not a published Action release. `core-source.json` pins one candidate's repository,
 commit, archive and source manifest. Its provenance is Core
-[CI run 41817107961](https://github.com/taco3064/nibfin-core/actions/runs/41817107961).
+[CI run 41820823116](https://github.com/taco3064/nibfin-core/actions/runs/41820823116).
 A candidate can be tested before publication; formal Action publication still
 requires the actual verified Core Release specified by the Issue.
 
@@ -31,6 +31,11 @@ Core's own verifier checks the installed manifest and file contents before stage
 execution. The second command runs only after successful verification. No input,
 Issue field or environment option can select an executable, installation, module,
 Docker endpoint, credential file or policy. Raw Core output is not logged.
+After verification, stage transport uses Core's public bounded `command` helper
+at that fixed installation, with only its native 0/1/2 exits accepted for decoding.
+Timeouts and retained cross-identity pipes remain Pending; caller exit never
+proves privileged Writer termination. Verification itself stays read-only and
+uses no native context or credentials.
 
 The current binding consumes Core's existing `single-host-linux-v1` backend:
 fixed root-owned installation and `/etc/nibfin/host.json`, administrator adoption,
