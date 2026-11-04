@@ -59,8 +59,9 @@ unadopted Issue, unresolved execution or insufficient isolation must fail in Cor
 The adapter preserves a valid denied/Pending outcome and never retries. Controlled
 tests exercise this forwarding. Installed-Core contract tests additionally use
 Core's pinned synthetic provider/caller/isolation fixtures and a synthetic Agent
-to exercise permitted Shape, changed Scope, revoked permission, foreign repository,
-fork, stale caller and unknown execution. No native authorization or host adoption
+to exercise permitted Shape, changed Scope, revoked permission, missing caller proof,
+foreign repository, fork, stale caller and unknown execution. No native authorization
+or host adoption
 is established by those fixtures. The actual CI denial demonstrates the real CLI
 boundary without creating host authority configuration.
 

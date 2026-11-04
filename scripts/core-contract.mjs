@@ -71,6 +71,9 @@ test('Core rejects Scope, permission, repository, fork and caller changes',
     const cases = [
       f => { f.issue.body = 'Unapproved changed Scope'; },
       f => { f.data['/collaborators/reviewer/permission'].permission = 'read'; },
+      f => {
+        f.adapters.inspectCaller = async () => { throw Error('Missing caller proof'); };
+      },
       f => { f.runner.run.head_repository.id = 99; },
       f => { f.runner.run.event = 'pull_request'; },
       f => { f.runner.run.head_sha = 'b'.repeat(40); },
