@@ -12,7 +12,7 @@ This records manual implementation, not protected Nibfin delivery or acceptance.
 | A04 | Immutable pin and release verification procedure documented. | First external protected E2E, Owner publication authorization, compatible Core Release, reviewed binding/CI, Action/Marketplace publication and source/publisher read-back. |
 
 Development uses the exact candidate in `core-source.json`, independently checked
-against Core CI run 41681863006 and its producer artifact. This is not a formal
+against Core CI run 41817107961 and its producer artifact. This is not a formal
 Core Release. The GitHub Releases API returned no Core releases when the adapter
 was bound. No Action release, tag or Marketplace listing is created from that
 candidate. The absent Release does not prevent candidate integration, installation
@@ -35,7 +35,8 @@ Before publication:
 5. Read back tag object/commit, Release identity/publisher, `action.yml`, producer
    pin and downloadable assets/digests if present. Record actual native URLs.
    Independently clean-install the formal sources and compare them to the tested
-   candidates before Phase 1 onboarding.
+   candidates when later distribution is authorized. Owner-approved Phase 1 may
+   use the validated immutable candidates after actual external E2E and cutover.
 
 No labels or native dependencies are changed. The manual Issue stays open for
 Owner acceptance. Core #1 is not reopened or modified by this work.

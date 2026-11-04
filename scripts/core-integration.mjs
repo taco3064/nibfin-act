@@ -37,7 +37,6 @@ try {
   execFileSync('sudo', ['mkdir', '/opt/nibfin']);
   execFileSync('sudo', ['cp', '-R', join(root, 'core'), '/opt/nibfin/core']);
   execFileSync('sudo', ['chmod', '-R', 'a+rX', '/opt/nibfin/core']);
-  execFileSync('sudo', ['install', '-m', '755', process.execPath, '/usr/bin/node']);
   console.log(JSON.stringify({ status: 'verified', source: installed,
     contractVersion: contract.schemaVersion, tamperRejected: true }));
 } finally {
