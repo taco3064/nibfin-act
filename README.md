@@ -6,7 +6,7 @@ Nibfin Core. Core owns lifecycle, authorization, isolation and delivery policy.
 This is development integration for manual [Bootstrap #1](https://github.com/taco3064/nibfin-act/issues/1),
 not a published Action release. `core-source.json` pins one candidate's repository,
 commit, archive and source manifest. Its provenance is Core
-[CI run 41681863006](https://github.com/taco3064/nibfin-core/actions/runs/41681863006).
+[CI run 41817107961](https://github.com/taco3064/nibfin-core/actions/runs/41817107961).
 A candidate can be tested before publication; formal Action publication still
 requires the actual verified Core Release specified by the Issue.
 
@@ -18,11 +18,13 @@ Outputs are `status`, diagnostic `code`, and `receipt-hash` for a completed stag
 Completed, denied and Pending map to process exits 0, 1 and 2. A completed stage
 does not mean a completed Issue. Unknown execution stays Pending without retry.
 
-The adapter runs only these fixed commands, without a shell:
+The adapter uses the absolute executable of GitHub's Node 24 Action runtime,
+not a host-global Node installation. It invokes only the fixed
+`/opt/nibfin/core/bin/nibfin-core.mjs` entry, without a shell, with these arguments:
 
 ```text
-/usr/bin/node /opt/nibfin/core/bin/nibfin-core.mjs verify <installation> <action-pin>
-/usr/bin/node /opt/nibfin/core/bin/nibfin-core.mjs stage <issue-number> <stage>
+verify <installation> <action-pin>
+stage <issue-number> <stage>
 ```
 
 Core's own verifier checks the installed manifest and file contents before stage

@@ -5,7 +5,8 @@ import { execFile } from 'node:child_process';
 // Fixed locations from the currently adopted Core backend, not workflow inputs.
 // No executable, module, installation or Docker endpoint override is accepted.
 export const coreDirectory = '/opt/nibfin/core';
-const executable = '/usr/bin/node';
+// GitHub supplies this Action's Node 24 runtime; do not select a host-global Node.
+const executable = process.execPath;
 const entry = `${coreDirectory}/bin/nibfin-core.mjs`;
 const pinPath = fileURLToPath(new URL('../core-source.json', import.meta.url));
 const pin = JSON.parse(await readFile(pinPath, 'utf8'));
