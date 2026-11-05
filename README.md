@@ -6,7 +6,7 @@ Nibfin Core. Core owns lifecycle, authorization, isolation and delivery policy.
 This is development integration for manual [Bootstrap #1](https://github.com/taco3064/nibfin-act/issues/1),
 not a published Action release. `core-source.json` pins one candidate's repository,
 commit, archive and source manifest. Its provenance is Core
-[CI run 41955780782](https://github.com/taco3064/nibfin-core/actions/runs/41955780782).
+[CI run 41961839868](https://github.com/taco3064/nibfin-core/actions/runs/41961839868).
 A candidate can be tested before publication; formal Action publication still
 requires the actual verified Core Release specified by the Issue.
 
