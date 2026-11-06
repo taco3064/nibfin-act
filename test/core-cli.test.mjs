@@ -45,20 +45,44 @@ test('Core permission, caller and unsupported-backend denials stay denied', asyn
     assert.equal(f.calls.length, 2);
   }
   const f = runner({ status: 'pending', code: 'HOST_EXECUTION_UNRESOLVED' }, 2);
-  assert.equal((await invokeStage('42', 'shape', {}, f.run)).status, 'pending');
+  assert.deepEqual(await invokeStage('42', 'shape', {}, f.run), {
+    status: 'pending', code: 'HOST_EXECUTION_UNRESOLVED', exitCode: 2,
+  });
+  assert.equal(f.calls.length, 2);
+  assert.deepEqual(f.calls[0].args.slice(0, 2), ['verify', coreDirectory]);
+  assert.deepEqual(f.calls[1].args, ['stage', '42', 'shape']);
 });
 
-test('wrong source, missing installation and invalid input never start a stage',
-  async () => {
-  for (const response of [processResult({ ...verified, source: { commit: 'wrong' } }),
-    { unavailable: true }, { stdout: 'garbage', exitCode: 0 }]) {
-    let calls = 0;
-    const result = await invokeStage('42', 'shape', {}, async () => {
-      calls++; return response;
-    });
-    assert.equal(result.status, 'denied');
-    assert.equal(calls, 1);
-  }
+test('source verification failures return exact diagnostics without starting a stage',
+  async t => {
+    const sentinel = 'synthetic-private-verification-sentinel';
+    const cases = [
+      ['stale commit', processResult({ ...verified,
+        source: { ...pin, commit: '0'.repeat(40) } }), 'CORE_SOURCE_MISMATCH'],
+      ['wrong repository', processResult({ ...verified,
+        source: { ...pin, repository: 'other/repository' } }), 'CORE_SOURCE_MISMATCH'],
+      ['missing executable', { unavailable: true }, 'CORE_EXECUTABLE_UNAVAILABLE'],
+      ['malformed output', { stdout: sentinel, stderr: sentinel, exitCode: 0 },
+        'CORE_SOURCE_MISMATCH'],
+      ['verification transport', () => { throw Error(sentinel); },
+        'CORE_VERIFICATION_UNAVAILABLE'],
+    ];
+    for (const [name, response, code] of cases) {
+      await t.test(name, async () => {
+        const calls = [];
+        const result = await invokeStage('42', 'shape', {}, async args => {
+          calls.push(args);
+          return typeof response === 'function' ? response() : response;
+        });
+        assert.deepEqual(result, { status: 'denied', code, exitCode: 1 });
+        assert.equal(calls.length, 1);
+        assert.deepEqual(calls[0].slice(0, 2), ['verify', coreDirectory]);
+        assert.equal(JSON.stringify(result).includes(sentinel), false);
+      });
+    }
+  });
+
+test('invalid input never verifies or starts a stage', async () => {
   for (const [issue, stage] of [['../42', 'shape'], ['42', '--config'],
     ['9007199254740992', 'shape'], [undefined, 'shape']]) {
     const f = runner({});
@@ -66,7 +90,7 @@ test('wrong source, missing installation and invalid input never start a stage',
       'INVALID_ACTION_INPUT');
     assert.equal(f.calls.length, 0);
   }
-  });
+});
 
 test('unknown execution, missing receipt and exit/result mismatch cannot succeed',
   async () => {
@@ -77,15 +101,65 @@ test('unknown execution, missing receipt and exit/result mismatch cannot succeed
       assert.equal((await invokeStage('42', 'shape', {}, f.run)).status, 'pending');
       assert.equal(f.calls.length, 2);
     }
-    let calls = 0;
-    const run = async () => {
-      if (++calls === 1) return processResult(verified);
-      throw Error('private transport failure');
-    };
-    assert.equal((await invokeStage('42', 'shape', {}, run)).code,
-      'CORE_EXECUTION_UNKNOWN');
-    assert.equal(calls, 2);
   });
+
+test('stderr-only provider denial preserves bounded fields without retrying',
+  async () => {
+  const sentinel = 'synthetic-private-provider-sentinel';
+  const calls = [];
+  const result = await invokeStage('42', 'shape', {}, async args => {
+    calls.push(args);
+    if (args[0] === 'verify') return processResult(verified);
+    return { stdout: '', stderr: JSON.stringify({ schemaVersion: 1,
+      stage: 'shape', status: 'denied', code: 'HOST_APPROVAL_MISMATCH',
+      receiptHash: 'a'.repeat(64), rawOutput: sentinel, exception: sentinel }),
+    exitCode: 1, signal: null };
+  });
+  assert.deepEqual(result, {
+    status: 'denied', code: 'HOST_APPROVAL_MISMATCH', exitCode: 1,
+  });
+  assert.equal(JSON.stringify(result).includes(sentinel), false);
+  assert.equal(calls.length, 2);
+  assert.deepEqual(calls[0].slice(0, 2), ['verify', coreDirectory]);
+  assert.deepEqual(calls[1], ['stage', '42', 'shape']);
+});
+
+test('stage failures suppress raw output and exceptions without retrying', async t => {
+  const sentinel = 'synthetic-private-stage-sentinel';
+  const cases = [
+    ['structured denial with private stdout fields and raw stderr', {
+      ...processResult({ status: 'denied', code: 'UNTRUSTED_ACTIONS_RUN',
+        rawOutput: sentinel, exception: sentinel, receiptHash: sentinel }, 1),
+      stderr: sentinel,
+    }, { status: 'denied', code: 'UNTRUSTED_ACTIONS_RUN', exitCode: 1 }],
+    ['malformed stdout and stderr', {
+      stdout: sentinel, stderr: sentinel, exitCode: 1, signal: null,
+    }],
+    ['malformed stderr-only result', {
+      stdout: '', stderr: sentinel, exitCode: 1, signal: null,
+    }],
+    ['unsafe structured diagnostic', processResult({ status: 'denied',
+      code: `DENIED\n${sentinel}`, rawOutput: sentinel }, 1)],
+    ['thrown transport', () => { throw Error(sentinel); }],
+  ];
+  for (const [name, response, expected] of cases) {
+    await t.test(name, async () => {
+      const calls = [];
+      const result = await invokeStage('42', 'shape', {}, async args => {
+        calls.push(args);
+        if (args[0] === 'verify') return processResult(verified);
+        return typeof response === 'function' ? response() : response;
+      });
+      assert.deepEqual(result, expected ?? {
+        status: 'pending', code: 'CORE_EXECUTION_UNKNOWN', exitCode: 2,
+      });
+      assert.equal(JSON.stringify(result).includes(sentinel), false);
+      assert.equal(calls.length, 2);
+      assert.deepEqual(calls[0].slice(0, 2), ['verify', coreDirectory]);
+      assert.deepEqual(calls[1], ['stage', '42', 'shape']);
+    });
+  }
+});
 
 test('verification uses no caller-controlled environment settings', () => {
   assert.deepEqual(coreEnvironment({ PATH: '/evil', HOME: '/private' }),
