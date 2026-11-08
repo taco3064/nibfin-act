@@ -15,9 +15,10 @@ const { nativeStageExecutor, runStageInput } = await import(pathToFileURL(
 
 async function fixture(t, mutate = () => {}) {
   const f = await nativeFixture(t);
-  let executions = 0;
+  let executions = 0, seenIssueBody;
   const agent = { run: async (_stage, context) => {
     executions++;
+    seenIssueBody = context.issue.body;
     const lastMessage = JSON.stringify({ outcome: 'ready', body: f.context.shape.body,
       summary: 'Synthetic contract execution', rootCause: '', failureClass: 'none',
       evidenceReferences: ['fixture:action-contract'], blockingFindings: [],
@@ -51,7 +52,8 @@ async function fixture(t, mutate = () => {}) {
     return { stdout: JSON.stringify(result), stderr: '', signal: null,
       exitCode: { completed: 0, denied: 1, pending: 2 }[result.status] };
   };
-  return { run, calls, executions: () => executions };
+  return { run, calls, executions: () => executions,
+    seenIssueBody: () => seenIssueBody };
 }
 
 test('installed Core completes a permitted synthetic Shape and Action keeps its receipt',
@@ -66,10 +68,10 @@ test('installed Core completes a permitted synthetic Shape and Action keeps its 
     assert.deepEqual(f.calls, ['verify', 'stage']);
   });
 
-test('Core rejects Scope, permission, repository, fork and caller changes',
+test('Core rejects empty Scope, permission, repository, fork and caller changes',
   async t => {
     const cases = [
-      f => { f.issue.body = 'Unapproved changed Scope'; },
+      f => { f.issue.body = ''; },
       f => { f.data['/collaborators/reviewer/permission'].permission = 'read'; },
       f => {
         f.adapters.inspectCaller = async () => { throw Error('Missing caller proof'); };
@@ -88,6 +90,14 @@ test('Core rejects Scope, permission, repository, fork and caller changes',
       assert.deepEqual(f.calls, ['verify', 'stage']);
     }
   });
+
+test('Core passes the current authorized Issue body to Shape', async t => {
+  const body = 'Current authorized requirements';
+  const f = await fixture(t, fixture => { fixture.issue.body = body; });
+  const result = await invokeStage('2', 'shape', {}, f.run);
+  assert.equal(result.status, 'completed');
+  assert.equal(f.seenIssueBody(), body);
+});
 
 test('unknown Core execution stays Pending and the adapter does not retry', async t => {
   let executions = 0;
