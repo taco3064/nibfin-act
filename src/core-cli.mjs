@@ -33,13 +33,13 @@ export function coreEnvironment(env, native = false) {
 async function command(args, env) {
   if (args[0] === 'stage') {
     // invokeStage reaches this import only after exact installed-source verification.
-    const { command: coreCommand } = await import(
+    const { command: coreCommand, deliveryTransportTimeout } = await import(
       pathToFileURL(`${coreDirectory}/src/public-api.mjs`)
     );
     const result = await coreCommand(executable, [entry, ...args], {
       cwd: coreDirectory,
       env,
-      timeout: 55 * 60 * 1000,
+      timeout: deliveryTransportTimeout,
       limit: 1024 * 1024,
       allowedExitCodes: Object.values(stageExits),
     });
