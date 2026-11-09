@@ -14,5 +14,8 @@ try {
   process.exitCode = 1;
 }
 process.stdout.write(JSON.stringify(result) + '\n');
-if (result.exitCode !== 0) process.stderr.write(`::error::${result.code}\n`);
+if (result.exitCode !== 0) {
+  const stage = result.terminalStage ? ` (stage: ${result.terminalStage})` : '';
+  process.stderr.write(`::error::${result.code}${stage}\n`);
+}
 process.exitCode = process.exitCode || result.exitCode;
