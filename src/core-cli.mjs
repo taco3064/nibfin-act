@@ -147,6 +147,11 @@ export async function invokeStage(issue, stage, env, run = command) {
   return {
     status: result.status,
     code: result.code ?? '',
+    ...(result.status !== 'completed' && result.schemaVersion === 1 &&
+      result.stage === stage && stage === 'continue' &&
+      typeof result.terminalStage === 'string' &&
+      /^[a-z][a-z-]{0,39}$/.test(result.terminalStage)
+      ? { terminalStage: result.terminalStage } : {}),
     ...(result.status === 'completed' ? { receiptHash: result.receiptHash } : {}),
     exitCode: execution.exitCode,
   };

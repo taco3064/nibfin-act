@@ -53,6 +53,17 @@ test('Core permission, caller and unsupported-backend denials stay denied', asyn
   assert.deepEqual(f.calls[1].args, ['stage', '42', 'shape']);
 });
 
+test('continue exposes only a bounded terminal stage from Core', async () => {
+  const result = { schemaVersion: 1, stage: 'continue', status: 'denied',
+    code: 'STAGE_REQUIRES_CORRECTION', terminalStage: 'deliver' };
+  const valid = runner(result, 1);
+  assert.equal((await invokeStage('42', 'continue', {}, valid.run)).terminalStage,
+    'deliver');
+  const invalid = runner({ ...result, terminalStage: 'shape\n::error::forged' }, 1);
+  assert.equal((await invokeStage('42', 'continue', {}, invalid.run)).terminalStage,
+    undefined);
+});
+
 test('source verification failures return exact diagnostics without starting a stage',
   async t => {
     const sentinel = 'synthetic-private-verification-sentinel';
