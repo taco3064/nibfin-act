@@ -7,6 +7,7 @@ const integration = /^(?:src\/|action\.yml$|core-source\.json$|scripts\/core-)/;
 const suites = {
   'test/action.test.mjs': /^(?:src\/|action\.yml$|scripts\/metadata\.mjs$)/,
   'test/core-cli.test.mjs': /^(?:src\/core-cli\.mjs$|core-source\.json$)/,
+  'test/release.test.mjs': /^(?:scripts\/|src\/|action\.yml$|core-source\.json$)/,
   'test/project.test.mjs': /^(?:scripts\/check\.mjs$|action\.yml$)/,
 };
 

@@ -14,9 +14,16 @@
     "check": "node scripts/check.mjs",
     "test": "node scripts/test-changes.mjs",
     "test:all": "node --test",
-    "verify": "npm run check && npm test"
+    "verify": "npm run check && npm test",
+    "release:prepare": "node scripts/release.mjs"
   },
-  "files": ["action.yml", "core-source.json", "src", "docs", "README.md"],
+  "files": [
+    "action.yml",
+    "core-source.json",
+    "src",
+    "docs",
+    "README.md"
+  ],
   "devDependencies": {
     "yaml": "2.9.1"
   }
