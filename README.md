@@ -75,3 +75,37 @@ by independent clean installation/read-back. No Release is needed to integrate
 or run that first E2E; publication cannot replace the E2E.
 
 See [Bootstrap status](docs/bootstrap-status.md) for publication prerequisites.
+
+## Local release preparation
+
+From a clean main checkout using the pinned Node/npm versions, run
+`npm ci --ignore-scripts`, then:
+
+```sh
+npm run --silent release:prepare -- 1.2.3-rc.1
+```
+
+Supply exactly one SemVer 2.0.0 common release version (without a `v` prefix).
+The command is noninteractive. On success stdout contains one JSON object:
+
+```json
+{"status":"tag-ready","version":"1.2.3-rc.1","entry":"src/main.mjs","runtime":"node24"}
+```
+
+The coordinator can require exit zero and parse these fields. Validation failures
+exit nonzero, explain the failure on stderr and emit no readiness result. Validation
+runs before version changes. Success updates `package.json`, the lockfile version
+and its root package version in place; include those changes in the tree supplied
+to the separately authorized release process. Filesystem write failures may leave
+partial metadata changes and require restoring the checkout before retrying.
+
+Validation reuses the Action metadata validator, pinned-runtime/source checks and
+synthetic adapter contract tests, and checks the packaged files and local imports.
+Development dependencies and tests must remain available during preparation; they
+are not Action runtime dependencies. The existing `core-source.json` integrity pin
+is retained independently of the common release version.
+
+Preparation performs local checks only and creates no tags, pushes, GitHub Releases
+or Marketplace publication. It does not install Core or invoke an authorized Core
+stage. A successful result means tag readiness; publication, live E2E and support
+on untested platforms require their own evidence and authorization.
