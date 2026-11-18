@@ -13,3 +13,9 @@ restart. Individual Issue pauses are optional. Preserve existing pauses and
 let admitted work settle before the services stop.
 
 Keep the Action's consumer updates in the verified Core rollout.
+
+## Public GitHub communications
+
+Write all public-facing text published on GitHub in English. This includes
+Issue and pull request titles and bodies, comments, reviews, Discussions, and
+release notes. Apply the same rule to text published by automation.
